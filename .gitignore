@@ -1,0 +1,8 @@
+.gitignore
+.idea
+__pycache__
+_log.txt
+file.gif
+sticker.webp
+bot.py
+config.yaml

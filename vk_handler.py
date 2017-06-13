@@ -120,7 +120,7 @@ class VKMessages:
         pass
 
     def message_handle(self, vk_msg, chat_info):
-        for msgList in vk_msg['messages']:
+        for msgList in reversed(vk_msg['messages']):
             if type(msgList) is int:
                 pass
             elif self.mid_check(msgList) and 'chat_id' in msgList and msgList['chat_id'] == chat_info['chat_id']:
@@ -139,17 +139,20 @@ class VKMessages:
                     self.fwd_message_handle(msgList['fwd_messages'])
 
     def message_loop(self):
-        ts_adr = self.api.messages.getLongPollServer()['ts']
-        while True:
-            vk_msg = self.api.messages.getLongPollHistory(key=self.session.access_token,
-                                                          server='imv4.vk.com/im0402',
-                                                          ts=ts_adr,
-                                                          mode=2)
-
+        try:
+            ts_adr = self.api.messages.getLongPollServer()['ts']
             chat_info = self.api.messages.getChat(chat_id=config.VK_CHATID)
+            while True:
+                vk_msg = self.api.messages.getLongPollHistory(key=self.session.access_token,
+                                                              server='imv4.vk.com/im0402',
+                                                              ts=ts_adr,
+                                                              mode=2)
 
-            self.message_handle(vk_msg, chat_info)
-            time.sleep(1)
+                self.message_handle(vk_msg, chat_info)
+                time.sleep(1)
+        except Exception as e:
+            logging.warning(e)
+            return
 
     def __repr__(self):
         return '<vkapi_session object>'
@@ -161,8 +164,4 @@ vk_api = VKMessages(
     scope="wall,messages")
 
 while True:
-    try:
-        vk_api.message_loop()
-    except Exception as e:
-        logging.warning(e)
-        pass
+    vk_api.message_loop()

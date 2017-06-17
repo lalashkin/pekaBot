@@ -16,7 +16,7 @@ logging.basicConfig(filename='_log.txt', level=logging.INFO)
 
 class VKMessages:
 
-    def __init__(self, app_id='', user_login='', user_password='', scope=''):
+    def __init__(self, app_id='', user_login='', user_password='', scope='offline'):
 
         self.session = vk.AuthSession(app_id, user_login, user_password, scope)
         self.api = vk.API(self.session)
@@ -80,8 +80,7 @@ class VKMessages:
                     self.bot.sendMessage(config.TG_CHATID, text)
             if 'attachments' in attach['wall']:
                 for w_attach in attach['wall']['attachments']:
-                    wall_attach = self.attachments_handle(w_attach)
-                    return wall_attach
+                    self.attachments_handle(w_attach)
             return wall
         elif attach['type'] == 'sticker':                               # Stickers Handle
             sticker_url = http.request('GET', attach['sticker']['photo_512'])
@@ -120,7 +119,7 @@ class VKMessages:
         pass
 
     def message_handle(self, vk_msg, chat_info):
-        for msgList in reversed(vk_msg['messages']):
+        for msgList in vk_msg['messages']:
             if type(msgList) is int:
                 pass
             elif self.mid_check(msgList) and 'chat_id' in msgList and msgList['chat_id'] == chat_info['chat_id']:
@@ -146,6 +145,7 @@ class VKMessages:
                 vk_msg = self.api.messages.getLongPollHistory(key=self.session.access_token,
                                                               server='imv4.vk.com/im0402',
                                                               ts=ts_adr,
+                                                              wait=0.1,
                                                               mode=2)
 
                 self.message_handle(vk_msg, chat_info)
@@ -161,7 +161,7 @@ vk_api = VKMessages(
     app_id=config.VK_APPID,
     user_login=config.VK_LOGIN,
     user_password=config.VK_PASSWD,
-    scope="wall,messages")
+    scope="wall,messages,offline")
 
 while True:
     vk_api.message_loop()
